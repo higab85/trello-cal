@@ -15,7 +15,11 @@ cal_config = config['CALENDAR']
 
 
 # url = "https://user:pass@hostname/caldav.php/"
-url = ("%s://%s:%s@%s" % (cal_config['protocol'],cal_config['user'],cal_config['password'],cal_config['url']))
+url = ("%s://%s:%s@%s" % (
+    cal_config['protocol'],
+    cal_config['user'],
+    cal_config['password'],
+    cal_config['url']))
 print("connecting to",url)
 
 client = caldav.DAVClient(url)
