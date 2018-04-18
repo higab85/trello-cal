@@ -1,17 +1,23 @@
-from cal_client import make_event, hour
+from cal_client import event_to_cal, hour
 from trello_client import *
 
-def get_list_cards(board, list):
-    return client.get_board(board).get_list(list).list_cards()
 
 def personal_done_calendarise():
     all_cards_in_done = get_list_cards(personal_board_id, personal_board_done_list_id)
+    session_id = uuid.uuid1().int
     for card in all_cards_in_done:
-        make_event(card)
-        card.set_closed(True)
+        if is_new_card(card):
+            # event_to_cal(card)
+            log_card(card, session_id)
+            archive_card(card)
 
 def work_done_calendarise():
-    all_cards_in_done = get_list_cards(work_board_id, work_board_done_list_id)
-    pretty_print(all_cards_in_done[2])
+    all_cards_in_done = get_list_cards(work_board_id, work_board_done_list_id, [my_id])
+    session_id = uuid.uuid1().int
+    for card in all_cards_in_done:
+        if is_new_card(card):
+            event_to_cal(card)
+            log_card(card, session_id)
 
 personal_done_calendarise()
+work_done_calendarise()

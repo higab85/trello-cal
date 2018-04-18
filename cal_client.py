@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import caldav
 import uuid
 from caldav.elements import dav, cdav
+from trello_client import get_description
 
 import yaml
 
@@ -20,6 +21,7 @@ url = ("%s://%s:%s@%s" % (
     cal_config['user'],
     cal_config['password'],
     cal_config['url']))
+
 print("connecting to",url)
 
 client = caldav.DAVClient(url)
@@ -32,27 +34,11 @@ if len(calendars) > 0:
 # constants
 hour = timedelta(hours=1)
 
-def checklist_print(checklists):
-    checklist_out = ""
-    for checklist in checklists:
-        checklist_out += "\nCHECKLIST: " + checklist.name +"\n"
-        for item in checklist.items:
-            checklist_out += "- " + item['name'] + "\n"
-    return checklist_out
+def add_to_calendar(vcal):
+    event = calendar.add_event(vcal)
+    print("Event", event, "added to calendar.")
 
-
-def pretty_print(card):
-    print("Title: %s:\nDescription: %s\n%s\nFinished at:%s\n\n" % (
-        card.name,
-        card.description,
-        checklist_print(card.fetch_checklists()),
-        card.listCardMove_date()[0][-1]))
-
-def make_event(card):
-    title = card.name
-    description = card.description + "\n"  + checklist_print(card.fetch_checklists())
-    duration = hour
-    end = card.listCardMove_date()[0][-1]
+def _make_vcal(start, end, title, description):
     vcal =  """BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Example Corp.//CalDAV Client//EN
@@ -66,10 +52,21 @@ DESCRIPTION;ENCODING=QUOTED-PRINTABLE:%s
 END:VEVENT
 END:VCALENDAR""" % (uuid.uuid1().int,
     datetime.now().strftime("%Y%m%dT%H%M%SZ"),
-    (end-duration).strftime("%Y%m%dT%H%M%SZ"),
+    start.strftime("%Y%m%dT%H%M%SZ"),
     end.strftime("%Y%m%dT%H%M%SZ"),
     title,
     description.replace("\n","=0D=0A"))
-    print("VCAL:\n",vcal)
-    event = calendar.add_event(vcal)
-    print("Event", event, "created")
+    print("VCAL created:\n",vcal)
+    return vcal
+
+def make_vcal(card):
+    title = card.name
+    description = get_description(card)
+    duration = hour
+    end = card.listCardMove_date()[0][-1]
+    start = end - duration
+    return _make_vcal(start, end, title, description)
+
+def event_to_cal(card):
+    vcal = make_vcal(card)
+    add_to_calendar(vcal)
