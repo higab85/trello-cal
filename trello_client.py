@@ -16,6 +16,16 @@ config = yaml.load(file)
 #     config = yaml.load(c)
 trello_config = config['TRELLO']
 
+def login():
+    api_key = trello_config['api_key']
+    api_secret = trello_config['api_secret']
+    client = TrelloClient(api_key, api_secret)
+    out = util.create_oauth_token()
+    config['TRELLO']['oauth_token'] = out['oauth_token']
+    config['TRELLO']['oauth_token_secret'] = out['oauth_token_secret']
+    file_w = open("config.yml", "w")
+    yaml.dump(config, file_w)
+    file_w.close()
 
 client = TrelloClient(
     api_key=trello_config['api_key'],
