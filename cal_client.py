@@ -3,11 +3,13 @@ import caldav
 import uuid
 from caldav.elements import dav, cdav
 from trello_client import get_description
+from ruamel.yaml import YAML
 
-import yaml
-
-with open('config.yml') as c:
-    config = yaml.load(c)
+file = open("config.yml","r")
+yaml = YAML()
+config = yaml.load(file)
+# with open('config.yml') as c:
+#     config = yaml.load(c)
 cal_config = config['CALENDAR']
 
 ###############

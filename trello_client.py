@@ -1,5 +1,5 @@
 from trello import TrelloClient
-import yaml
+from ruamel.yaml import YAML
 from peewee import *
 from datetime import date,datetime
 import hashlib
@@ -8,9 +8,14 @@ import uuid
 
 db = SqliteDatabase('sent_to_cal.db')
 
-with open('config.yml') as c:
-    config = yaml.load(c)
+file = open("config.yml","r")
+yaml = YAML()
+config = yaml.load(file)
+
+# with open('config.yml') as c:
+#     config = yaml.load(c)
 trello_config = config['TRELLO']
+
 
 client = TrelloClient(
     api_key=trello_config['api_key'],
@@ -18,6 +23,9 @@ client = TrelloClient(
     token=trello_config['oauth_token'],
     token_secret=trello_config['oauth_token_secret'])
 
+client = TrelloClient(
+    api_key=trello_config['api_key'],
+    api_secret=trello_config['api_secret'])
 
 class LoggedCard(Model):
     card_id = CharField()
