@@ -1,4 +1,4 @@
-from trello import TrelloClient
+from trello import TrelloClient, util
 from ruamel.yaml import YAML
 from peewee import *
 from datetime import date,datetime
@@ -20,7 +20,7 @@ def login():
     api_key = trello_config['api_key']
     api_secret = trello_config['api_secret']
     client = TrelloClient(api_key, api_secret)
-    out = util.create_oauth_token()
+    out = util.create_oauth_token(key=api_key, secret=api_secret)
     config['TRELLO']['oauth_token'] = out['oauth_token']
     config['TRELLO']['oauth_token_secret'] = out['oauth_token_secret']
     file_w = open("config.yml", "w")
@@ -33,9 +33,6 @@ client = TrelloClient(
     token=trello_config['oauth_token'],
     token_secret=trello_config['oauth_token_secret'])
 
-client = TrelloClient(
-    api_key=trello_config['api_key'],
-    api_secret=trello_config['api_secret'])
 
 class LoggedCard(Model):
     card_id = CharField()

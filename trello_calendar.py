@@ -1,6 +1,6 @@
 from cal_client import event_to_cal, hour
 from trello_client import *
-from trello import util, exceptions
+from trello import exceptions
 import os
 import sys
 
@@ -8,7 +8,6 @@ import sys
 def personal_done_calendarise():
     all_cards_in_done = get_list_cards(personal_board_id, personal_board_done_list_id)
     session_id = uuid.uuid1().int
-    print(all_cards_in_done.length())
     for card in all_cards_in_done:
         if is_new_card(card):
             event_to_cal(card)
