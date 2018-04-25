@@ -1,13 +1,15 @@
 from cal_client import event_to_cal, hour
-from cal_client import requests
 from trello_client import *
 from trello import exceptions
 import os
 import sys
+from pprint import pprint
 
 
 def personal_done_calendarise():
-    all_cards_in_done = get_list_cards(personal_board_id, personal_board_done_list_id)
+    all_cards_in_done = get_list_cards(
+        get_board_id('personal'),
+        get_list_id('personal','done'))
     session_id = uuid.uuid1().int
     for card in all_cards_in_done:
         if is_new_card(card):
@@ -34,8 +36,9 @@ try:
 except exceptions.Unauthorized:
     print("Not logged in yet!")
     login()
-except requests.exceptions.ConnectionError:
-    print("spaghett!")
+except IndexError:
+    pass
+
 
 # login()
 # personal_done_calendarise()

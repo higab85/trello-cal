@@ -4,7 +4,7 @@ from peewee import *
 from datetime import date,datetime
 import hashlib
 import uuid
-
+from pprint import pprint
 
 db = SqliteDatabase('sent_to_cal.db')
 
@@ -15,6 +15,8 @@ config = yaml.load(file)
 # with open('config.yml') as c:
 #     config = yaml.load(c)
 trello_config = config['TRELLO']
+boards = trello_config['boards']
+
 
 # TODO: !!
 # def write_to_yaml(position, value):
@@ -99,23 +101,79 @@ def is_new_card(card):
         return True
     return False
 
-def get_list_cards(board, list, members=[]):
-    cards = client.get_board(board).get_list(list).list_cards()
+def get_list_cards(board_id, list_id, members=[]):
+    print("Getting list %s from board %s with members %s" % (list_id, board_id, members))
+    cards = client.get_board(board_id).get_list(list_id).list_cards()
     return filter(lambda x: x.member_id == members, cards)
+
+def board_to_yaml(name, board_id):
+    trello_config['boards'][name]['id'] = board_id
+    file_w = open("config.yml", "w")
+    yaml.dump(config, file_w)
+    file_w.close()
+    print("written")
+
+def find_board_id(board_name):
+    print("You don't seem to have a %s board! \n\
+Please select one of the following: " % board_name)
+    for id,board in enumerate(client.list_boards()):
+        print("%s:%s" % (id, board))
+    board_num = int(input("What is the id of your %s board?" % (board_name)))
+    board_id = client.list_boards()[board_num].id
+    board_to_yaml(board_name, board_id)
+    return board_id
+
+def get_board_id(board_name):
+    if boards[board_name]['id'] == None:
+        return find_board_id(board_name)
+    else:
+        return boards[board_name]['id']
+
+def list_to_yaml(board_name, list_name, list_id):
+    trello_config['boards'][board_name][list_name] = list_id
+    file_w = open("config.yml", "w")
+    yaml.dump(config, file_w)
+    file_w.close()
+    print("%s id has been written to config" % list_name)
+
+def find_list_id(board_config, list_name):
+    print("You don't seem to have a %s list, on your this board! \n\
+Please select one of the following: " % list_name)
+    board_id = str(board_config['id'])
+    board_name = board_config['name']
+    for id,list in enumerate(client.get_board(board_id).open_lists()):
+        print("%s:%s" % (id, list))
+    list_num = int(input("What is the id of your %s list?" % (list_name)))
+    list_id = client.get_board(board_id).open_lists()[list_num].id
+    list_to_yaml(board_name, list_name, list_id)
+    return list_id
+
+def get_list_id(board_name, list_name):
+    board_config = boards[board_name]
+    if board_config[list_name] == None:
+        return find_list_id(board_config, list_name)
+    else:
+        return boards[board_name][list_name]
+
 
 ## Get a board ID like so:
 # 1. client.list_boards()
-# 2. client.listboards()[number of board].id
+# 2. client.list_boards()[number of board].id
 # [3.(for list id) print(client.get_board(work_board_id).open_lists()[3].id) ]
-boards = trello_config['boards']
 
-personal_board_id  = boards['personal']['id']
-personal_board_done_list_id = boards['personal']['lists']['done']
 
-work_board_id  = boards['work']['id']
-work_board_done_list_id = boards['work']['lists']['done']
-
-my_id = boards['work']['member_id']
+# personal_board = boards['personal']
+#
+# if (personal_board == None):
+#     find_board('personal')
+#
+# personal_board_id  = boards['personal']['id']
+# personal_board_done_list_id = boards['personal']['done']
+#
+# work_board_id  = boards['work']['id']
+# work_board_done_list_id = boards['work']['done']
+#
+# my_id = boards['work']['member_id']
 
 # for member in client.get_board(work_board_id).all_members():
 #     print("Name: %s, ID: %s\n" % (member.full_name, member.id))
