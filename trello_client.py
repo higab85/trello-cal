@@ -16,6 +16,14 @@ config = yaml.load(file)
 #     config = yaml.load(c)
 trello_config = config['TRELLO']
 
+# TODO: !!
+# def write_to_yaml(position, value):
+#     file = open("config.yml","r")
+#     yaml = YAML()
+#     config = yaml.load(file)
+#     for category in position:
+        # config = config[category]
+
 def login():
     api_key = trello_config['api_key']
     api_secret = trello_config['api_secret']

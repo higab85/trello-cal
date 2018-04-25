@@ -1,4 +1,5 @@
 from cal_client import event_to_cal, hour
+from cal_client import requests
 from trello_client import *
 from trello import exceptions
 import os
@@ -33,7 +34,8 @@ try:
 except exceptions.Unauthorized:
     print("Not logged in yet!")
     login()
-
+except requests.exceptions.ConnectionError:
+    print("spaghett!")
 
 # login()
 # personal_done_calendarise()

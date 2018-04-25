@@ -17,12 +17,30 @@ cal_config = config['CALENDAR']
 ###############
 
 
+def request_calendar():
+    protocol = input("protocol (http or https): ")
+    url = input("url (without protocol): ")
+    user = input("user:")
+    password = input("password:")
+
+    cal_config['protocol'] = protocol
+    cal_config['user'] = user
+    cal_config['password'] = password
+    cal_config['url'] = url
+    file_w = open("config.yml", "w")
+    yaml.dump(config, file_w)
+    file_w.close()
+
+if(cal_config['url'] == None):
+    request_calendar()
+
 # url = "https://user:pass@hostname/caldav.php/"
 url = ("%s://%s:%s@%s" % (
     cal_config['protocol'],
     cal_config['user'],
     cal_config['password'],
     cal_config['url']))
+
 
 print("connecting to",url)
 
