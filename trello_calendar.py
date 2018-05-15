@@ -37,6 +37,10 @@ except exceptions.Unauthorized:
     print("Not logged in yet!")
     login()
 except IndexError:
+    print("No option given!")
+    print("trello_cal personal # for personal trello \
+            \ntrello_cal work # for work board \
+            \ntrello_cal all # for both")
     pass
 
 

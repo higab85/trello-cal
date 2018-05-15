@@ -5,43 +5,21 @@ from datetime import date,datetime
 import hashlib
 import uuid
 from pprint import pprint
+import config
 
 db = SqliteDatabase('sent_to_cal.db')
 
-file = open("config.yml","r")
-yaml = YAML()
-config = yaml.load(file)
-
-# with open('config.yml') as c:
-#     config = yaml.load(c)
-trello_config = config['TRELLO']
+trello_config = config.config['TRELLO']
 boards = trello_config['boards']
 
-
-# TODO: !!
-# def write_to_yaml(position, value):
-#     file = open("config.yml","r")
-#     yaml = YAML()
-#     config = yaml.load(file)
-#     for category in position:
-        # config = config[category]
-
 def login():
-    api_key = trello_config['api_key']
-    api_secret = trello_config['api_secret']
+    api_key, api_secret = config.get_api_info()
     client = TrelloClient(api_key, api_secret)
     out = util.create_oauth_token(key=api_key, secret=api_secret)
-    config['TRELLO']['oauth_token'] = out['oauth_token']
-    config['TRELLO']['oauth_token_secret'] = out['oauth_token_secret']
-    file_w = open("config.yml", "w")
-    yaml.dump(config, file_w)
-    file_w.close()
+    config.save_token(out)
 
-client = TrelloClient(
-    api_key=trello_config['api_key'],
-    api_secret=trello_config['api_secret'],
-    token=trello_config['oauth_token'],
-    token_secret=trello_config['oauth_token_secret'])
+client = TrelloClient(config.get_client())
+    
 
 
 class LoggedCard(Model):
@@ -107,10 +85,7 @@ def get_list_cards(board_id, list_id, members=[]):
     return filter(lambda x: x.member_id == members, cards)
 
 def board_to_yaml(name, board_id):
-    trello_config['boards'][name]['id'] = board_id
-    file_w = open("config.yml", "w")
-    yaml.dump(config, file_w)
-    file_w.close()
+    config.write_config(['boards', name, 'id'], board_id)
     print("written")
 
 def find_board_id(board_name):
@@ -130,10 +105,7 @@ def get_board_id(board_name):
         return boards[board_name]['id']
 
 def list_to_yaml(board_name, list_name, list_id):
-    trello_config['boards'][board_name][list_name] = list_id
-    file_w = open("config.yml", "w")
-    yaml.dump(config, file_w)
-    file_w.close()
+    config.write_config(['boards', board_name, list_name], list_id)
     print("%s id has been written to config" % list_name)
 
 def find_list_id(board_config, list_name):

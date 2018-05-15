@@ -3,44 +3,12 @@ import caldav
 import uuid
 from caldav.elements import dav, cdav
 from trello_client import get_description
-from ruamel.yaml import YAML
+from config import save_cal, cal_url as url
 
-file = open("config.yml","r")
-yaml = YAML()
-config = yaml.load(file)
-# with open('config.yml') as c:
-#     config = yaml.load(c)
-cal_config = config['CALENDAR']
 
 ###############
 ### CALDAV
 ###############
-
-
-def request_calendar():
-    protocol = input("protocol (http or https): ")
-    url = input("url (without protocol): ")
-    user = input("user:")
-    password = input("password:")
-
-    cal_config['protocol'] = protocol
-    cal_config['user'] = user
-    cal_config['password'] = password
-    cal_config['url'] = url
-    file_w = open("config.yml", "w")
-    yaml.dump(config, file_w)
-    file_w.close()
-
-if(cal_config['url'] == None):
-    request_calendar()
-
-# url = "https://user:pass@hostname/caldav.php/"
-url = ("%s://%s:%s@%s" % (
-    cal_config['protocol'],
-    cal_config['user'],
-    cal_config['password'],
-    cal_config['url']))
-
 
 print("connecting to",url)
 
@@ -53,6 +21,14 @@ if len(calendars) > 0:
 
 # constants
 hour = timedelta(hours=1)
+
+def request_calendar():
+    protocol = input("protocol (http or https): ")
+    url = input("url (without protocol): ")
+    user = input("user:")
+    password = input("password:")
+    save_cal(protocol, url, user, password)
+
 
 def add_to_calendar(vcal):
     event = calendar.add_event(vcal)
