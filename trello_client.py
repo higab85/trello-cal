@@ -6,6 +6,7 @@ import hashlib
 import uuid
 from pprint import pprint
 from config import config
+import logging
 
 class Trello_Client(object):
 
@@ -22,7 +23,7 @@ class Trello_Client(object):
 
     def login(self):
         api_key, api_secret = config.get_api_info()
-        print("API: %s" % [api_key, api_secret])
+        logging.info("API (key, secret): %s" % [api_key, api_secret])
         token, token_secret = config.get_token()
         try:
             self.client = TrelloClient(api_key,
@@ -31,7 +32,7 @@ class Trello_Client(object):
                 token_secret=token_secret)
         except exceptions.Unauthorized:
             out = util.create_oauth_token(key=api_key, secret=api_secret)
-            print("token: %s" % out)
+            logging.info("token (key, secret): %s" % out)
             config.save_token(out)
 
 
@@ -68,10 +69,12 @@ class Trello_Client(object):
 
 
     def pretty_print(self, card):
-        print("Title: %s:\nDescription:%s\nFinished at:%s\n\n" % (
+        out = "Title: %s:\nDescription:%s\nFinished at:%s\n\n" % (
             card.name,
             self.get_description(card),
-            card.listCardMove_date()[0][-1]))
+            card.listCardMove_date()[0][-1])
+        logging.info(out)
+        print(out)
 
     def card_hash(self, card):
         hashable = self.get_description(card)
@@ -88,22 +91,23 @@ class Trello_Client(object):
         try:
             self.LoggedCard.get(self.LoggedCard.card_id == card.id)
         except DoesNotExist:
-            print("New card:", card.name)
+            message = "New card: " + card.name
+            logging.info(message)
+            print(message)
             return True
         return False
 
     def get_list_cards(self, board_id, list_id, members=[]):
-        print("Getting list %s from board %s with members %s" % (list_id, board_id, members))
-        print("API KEY(t_c): %s" % self.client.api_key)
+        logging.info("Getting list %s from board %s with members %s" % (list_id, board_id, members))
         cards = self.client.get_board(board_id).get_list(list_id).list_cards()
         return filter(lambda x: x.member_id == members, cards)
 
     def board_to_yaml(self, name, board_id):
         config.write_config(['TRELLO','boards', name, 'id'], board_id)
-        print("'%s' details written to config" % name)
+        logging.info("'%s' details written to config" % name)
 
     def find_board_id(self, board_name):
-        print("You don't seem to have a %s board! \n\
+        logging.warn("You don't seem to have a %s board! \n\
     Please select one of the following: " % board_name)
         for id,board in enumerate(self.client.list_boards()):
             print("%s:%s" % (id, board))
@@ -113,7 +117,6 @@ class Trello_Client(object):
         return board_id
 
     def get_board_id(self, board_name):
-        print("getting board id!")
         if self.boards()[board_name]['id'] == None:
             return self.find_board_id(board_name)
         else:
@@ -121,10 +124,10 @@ class Trello_Client(object):
 
     def list_to_yaml(self, board_name, list_name, list_id):
         config.write_config(['TRELLO','boards', board_name, list_name], list_id)
-        print("%s id has been written to config" % list_name)
+        logging.info("%s id has been written to config" % list_name)
 
     def find_list_id(self, board_config, list_name):
-        print("You don't seem to have a %s list, on your this board! \n\
+        logging.warn("You don't seem to have a %s list, on your this board! \n\
     Please select one of the following: " % list_name)
         board_id = str(board_config['id'])
         board_name = board_config['name']

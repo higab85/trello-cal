@@ -4,6 +4,7 @@ import uuid
 from caldav.elements import dav, cdav
 from trello_client import t_client
 from config import config
+import logging
 
 
 class Calendar_Client(object):
@@ -14,9 +15,11 @@ class Calendar_Client(object):
     def __init__(self):
         pass
 
-    def init(self):
+    def init(self, config_file=None):
+        if config_file is not None:
+            config.init(config_file)
         url = config.get_cal_url()
-        print("connecting to",url)
+        logging.info("connecting to %s", url)
         client = caldav.DAVClient(url)
         principal = client.principal()
         calendars = principal.calendars()
@@ -25,9 +28,19 @@ class Calendar_Client(object):
 
     def add_to_calendar(self, vcal):
         event = self.calendar.add_event(vcal)
-        print("Event", event, "added to calendar.")
+        logging.info("Event %s added to calendar.", event)
 
-    def _make_vcal(self, start, end, title, description):
+    def _make_vcal(self, start, end, title, description, stamp=None, uid=None):
+        if stamp is None:
+            stamp = datetime.now()
+        if uid is None:
+            uid = uuid.uuid1().int
+
+
+        description = description.replace("\r\n", "\\n")
+        description = description.replace("\n", "\\n")
+
+        logging.info("vcal being built from - start:%s, end:%s, title:%s, description:%s", start, end, title, description)
         vcal =  """BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Example Corp.//CalDAV Client//EN
@@ -37,26 +50,31 @@ DTSTAMP:%s
 DTSTART:%s
 DTEND:%s
 SUMMARY:%s
-DESCRIPTION;ENCODING=QUOTED-PRINTABLE:%s
+DESCRIPTION;ENCODING=quoted-printable:%s
 END:VEVENT
-END:VCALENDAR""" % (uuid.uuid1().int,
-        datetime.now().strftime("%Y%m%dT%H%M%SZ"),
+END:VCALENDAR""" % (uid,
+        stamp.strftime("%Y%m%dT%H%M%SZ"),
         start.strftime("%Y%m%dT%H%M%SZ"),
         end.strftime("%Y%m%dT%H%M%SZ"),
         title,
-        description.replace("\n","=0D=0A"))
-        print("VCAL created:\n",vcal)
+        description)
+        logging.info("VCAL created: %s",vcal)
         return vcal
 
     def make_vcal(self, card):
         title = card.name
         description = t_client.get_description(card)
         duration = self.hour
-        end = card.listCardMove_date()[0][-1]
+        try:
+            end = card.listCardMove_date()[0][-1]
+        except IndexError:
+            end = card.card_created_date
         start = end - duration
+        logging.info("vcal end:%s", end) 
         return self._make_vcal(start, end, title, description)
 
     def event_to_cal(self, card):
+        logging.info("event_to_vcal()")
         vcal = self.make_vcal(card)
         self.add_to_calendar(vcal)
 
