@@ -6,6 +6,7 @@ from trello_client import t_client
 from config import config
 import logging
 
+logging.basicConfig(filename='trello_cal.log', filemode='w', level=logging.DEBUG, format='[%(asctime)s]%(levelname)s: %(message)s', datefmt='%H:%M:%S')
 
 class Calendar_Client(object):
 
@@ -17,10 +18,15 @@ class Calendar_Client(object):
 
     def init(self, config_file=None):
         if config_file is not None:
-            config.init(config_file)
+            logging.info("Initialising config %s from Calendar_Client.", config_file)
+            config.init(cfile=config_file)
         url = config.get_cal_url()
         logging.info("connecting to %s", url)
-        client = caldav.DAVClient(url)
+        try:
+            client = caldav.DAVClient(url)
+        except KeyError:
+            config.request_calendar()
+            client = caldav.DAVClient(url)
         principal = client.principal()
         calendars = principal.calendars()
         if len(calendars) > 0:
@@ -36,9 +42,8 @@ class Calendar_Client(object):
         if uid is None:
             uid = uuid.uuid1().int
 
-
-        description = description.replace("\r\n", "\\n")
-        description = description.replace("\n", "\\n")
+        # description = description.replace("\r\n", "\\n")
+        # description = description.replace("\n", "\\n")
 
         logging.info("vcal being built from - start:%s, end:%s, title:%s, description:%s", start, end, title, description)
         vcal =  """BEGIN:VCALENDAR
@@ -57,7 +62,7 @@ END:VCALENDAR""" % (uid,
         start.strftime("%Y%m%dT%H%M%SZ"),
         end.strftime("%Y%m%dT%H%M%SZ"),
         title,
-        description)
+        description.replace("\n","=0D=0A"))
         logging.info("VCAL created: %s",vcal)
         return vcal
 
@@ -70,7 +75,7 @@ END:VCALENDAR""" % (uid,
         except IndexError:
             end = card.card_created_date
         start = end - duration
-        logging.info("vcal end:%s", end) 
+        logging.info("vcal end:%s", end)
         return self._make_vcal(start, end, title, description)
 
     def event_to_cal(self, card):

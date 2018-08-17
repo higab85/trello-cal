@@ -16,23 +16,52 @@ class Trello_Client(object):
         pass
 
     def init(self):
+        self.login()
         self.client = TrelloClient(config.get_client())
+
 
     def boards(self):
         return config.trello_config['boards']
 
     def login(self):
+        print("Time to refresh credentials!")
+        print("Visit https://trello.com/app-key")
+        logging.info("Trying to log in.")
+
+        # GET API INFO
         api_key, api_secret = config.get_api_info()
-        logging.info("API (key, secret): %s" % [api_key, api_secret])
-        token, token_secret = config.get_token()
+        logging.info("Old Trello API key and secret: %s" % [api_key, api_secret])
+
+        api_key = input("Trello API key: ")
+        config.write_config(["TRELLO", "api_key"], api_key)
+
+        token = input("Trello token: ")
+        config.write_config(["TRELLO", "token"], token)
+
+        # api_secret = input("Trello API secret: ")
+        # config.write_config(["TRELLO", "api_secret"], api_secret)
+        #
+        # logging.info("New Trello API key and secret %s" % [api_key, api_secret])
+
+        # GET OATH INFO
+        # token, token_secret = config.get_token()
+        # logging.info("Old OAuth token, OAuth token secret: %s" % [token, token_secret])
+
+        # token = input("Trello OAuth token: ")
+        # config.write_config(["TRELLO", "oauth_token"], token)
+        #
+        # token_secret = input("Trello OAuth token secret: ")
+        # config.write_config(["TRELLO", "oauth_token_secret"], token_secret)
+        #
+        # logging.info("New OAuth token, OAuth token secret: %s" % [token, token_secret])
+
         try:
-            self.client = TrelloClient(api_key,
-                api_secret=api_secret,
-                token=token,
-                token_secret=token_secret)
+            self.client = TrelloClient(api_key, token=token)
+            logging.info("client: %s" % self.client )
         except exceptions.Unauthorized:
             out = util.create_oauth_token(key=api_key, secret=api_secret)
             logging.info("token (key, secret): %s" % out)
+            logging.warning("Unauthorized")
             config.save_token(out)
 
 

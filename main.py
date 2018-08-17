@@ -36,7 +36,7 @@ def set_config(file=None):
         try:
             file = sys.argv[1]
         except IndexError:
-            file = "config.yml"
+            file = "config/config.yml"
     logging.info("using file: %s", file)
     config.init(file)
     logging.info("config successfully loaded: %s" % config.config)
@@ -53,7 +53,7 @@ def main():
             work_done_calendarise()
         else:
             personal_done_calendarise()
-    except exceptions.Unauthorized:
+    except (exceptions.Unauthorized, exceptions.ResourceUnavailable):
         logging.warn("Not logged in yet!")
         t_client.login()
         main()

@@ -1,5 +1,5 @@
 from ruamel.yaml import YAML
-
+import logging
 
 class Config(object):
 
@@ -15,34 +15,35 @@ class Config(object):
     def __init__(self):
         pass
 
-    def init(self, cfile="config.yml"):
+    def init(self, cfile="config/config.yml"):
         self.config_file = cfile
-        self.config = self.load_config(cfile)
+        self.config = self.load_config(cfile=cfile)
         self.trello_config = self.get_config(["TRELLO"])
         self.cal_config = self.get_config(["CALENDAR"])
 
 
-    def load_config(self, conf_file="config.yml"):
-        file = open(conf_file,"r")
+    def load_config(self, cfile="config/config.yml"):
+        file = open(cfile,"r")
         self.yaml = YAML()
-        return self.yaml.load(file)
+        result = self.yaml.load(file)
+        file.close()
+        return result
 
-    def request_calendar():
+    def request_calendar(self):
         protocol = input("protocol (http or https): ")
         url = input("url (without protocol): ")
         user = input("user:")
         password = input("password:")
+        logging.info("Calendar requested and about save.")
         self.save_cal(protocol, url, user, password)
 
 
     def save_cal(self, protocol, url, user, password):
-        self.cal_config['protocol'] = protocol
-        self.cal_config['user'] = user
-        self.cal_config['password'] = password
-        self.cal_config['url'] = url
-        file_w = open("config.yml", "w")
-        self.yaml.dump(config, file_w)
-        file_w.close()
+        self.write_config(['CALENDAR', 'protocol'], protocol)
+        self.write_config(['CALENDAR', 'user'], user)
+        self.write_config(['CALENDAR', 'password'], password)
+        self.write_config(['CALENDAR', 'url'], url)
+        logging.info("Unsaved config looks like: %s", self.cal_config)
 
 
     def get_cal_url(self):
