@@ -64,17 +64,14 @@ class Config(object):
 
     def get_api_info(self):
         api_key = self.trello_config['api_key']
-        api_secret = self.trello_config['api_secret']
-        return [api_key, api_secret]
+        return api_key
 
     def save_token(self, out):
-        self.write_config(['TRELLO', 'oauth_token'], out['oauth_token'])
-        self.write_config(['TRELLO', 'oauth_token_secret'], out['oauth_token_secret'])
+        self.write_config(['TRELLO', 'token'], out['token'])
 
     def get_token(self):
-        token = self.get_config(['TRELLO', 'oauth_token'])
-        token_secret = self.get_config(['TRELLO', 'oauth_token_secret'])
-        return token, token_secret
+        token = self.get_config(['TRELLO', 'token'])
+        return token
 
     def get_client(self):
         return [self.trello_config['api_key'],
