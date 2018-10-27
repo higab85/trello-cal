@@ -26,7 +26,7 @@ class Calendar_Client(object):
             client = caldav.DAVClient(url)
         except KeyError:
             config.request_calendar()
-            client = caldav.DAVClient(url)
+            client = caldav.DAVClient(config.get_cal_url())
         principal = client.principal()
         calendars = principal.calendars()
         if len(calendars) > 0:

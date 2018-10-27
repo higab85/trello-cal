@@ -26,13 +26,14 @@ class Trello_Client(object):
 
 
     def boards(self):
-        return config.trello_config['boards']
+        logging.info("boards- config: %s" % config)
+        return config.get_config(['TRELLO', 'boards']) or dict()
 
     def refresh_credentials(self):
         logging.warning("Unauthorized. Client: %s" % self.client)
 
         print("Time to refresh credentials!")
-        print("Visit https://trello.com/app-key")
+        print("Log in to trello at https://trello.com, then visit https://trello.com/app-key")
 
         api_key = input("Trello API key: ")
         config.write_config(["TRELLO", "api_key"], api_key)
@@ -52,6 +53,8 @@ class Trello_Client(object):
         # GET API INFO
         api_key = config.get_api_info()
         token = config.get_token()
+        if(not api_key or not token ):
+            self.refresh_credentials()
         logging.info("Trello API key and token: %s" % [api_key, token])
 
         if self.connection_tries > 3:
@@ -62,31 +65,10 @@ class Trello_Client(object):
         except exceptions.Unauthorized:
             logging.warn("Exception: %s" % sys.exc_info()[0])
             self.refresh_credentials()
-
+        except:
+            logging.warn("Other exception: %s" % sys.exc_info()[0])
         logging.info("Login successful")
         self.connection_tries = 0
-
-
-
-
-        # api_secret = input("Trello API secret: ")
-        # config.write_config(["TRELLO", "api_secret"], api_secret)
-        #
-        # logging.info("New Trello API key and secret %s" % [api_key, api_secret])
-
-        # GET OATH INFO
-        # token, token_secret = config.get_token()
-        # logging.info("Old OAuth token, OAuth token secret: %s" % [token, token_secret])
-
-        # token = input("Trello OAuth token: ")
-        # config.write_config(["TRELLO", "oauth_token"], token)
-        #
-        # token_secret = input("Trello OAuth token secret: ")
-        # config.write_config(["TRELLO", "oauth_token_secret"], token_secret)
-        #
-        # logging.info("New OAuth token, OAuth token secret: %s" % [token, token_secret])
-
-
 
     class LoggedCard(Model):
         card_id = CharField()
@@ -171,10 +153,14 @@ class Trello_Client(object):
         return board_id
 
     def get_board_id(self, board_name):
-        if self.boards()[board_name]['id'] == None:
-            return self.find_board_id(board_name)
-        else:
-            return self.boards()[board_name]['id']
+        try:
+            if self.boards()[board_name]['id'] == None:
+                return self.find_board_id(board_name)
+            else:
+                return self.boards()[board_name]['id']
+        except KeyError:
+            config.get_config(['TRELLO', 'boards', board_name, 'id'])
+            return self.get_board_id(board_name)
 
     def list_to_yaml(self, board_config, board_name, list_name, list_id):
         logging.info("%s id will be written to %s" %
@@ -194,10 +180,14 @@ class Trello_Client(object):
 
     def get_list_id(self, board_name, list_name):
         board_config = self.boards()[board_name]
-        if board_config[list_name] == None:
-            return self.find_list_id(board_config, board_name, list_name)
-        else:
-            return self.boards()[board_name][list_name]["id"]
+        try:
+            if board_config[list_name] == None:
+                return self.find_list_id(board_config, board_name, list_name)
+            else:
+                return self.boards()[board_name][list_name]["id"]
+        except KeyError:
+            config.get_config(['TRELLO', 'boards', board_name, list_name])
+            return self.get_list_id(board_name, list_name)
 
 t_client = Trello_Client()
 

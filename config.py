@@ -6,20 +6,12 @@ class Config(object):
     config_file = None
     yaml = None
 
-    config = None
-
-    trello_config = None
-    cal_config = None
-
-
     def __init__(self):
-        pass
+        self.config = dict()
 
     def init(self, cfile="config/config.yml"):
         self.config_file = cfile
         self.config = self.load_config(cfile=cfile)
-        self.trello_config = self.get_config(["TRELLO"])
-        self.cal_config = self.get_config(["CALENDAR"])
 
 
     def load_config(self, cfile="config/config.yml"):
@@ -27,9 +19,12 @@ class Config(object):
         self.yaml = YAML()
         result = self.yaml.load(file)
         file.close()
+        if result == None:
+            result = dict()
         return result
 
     def request_calendar(self):
+        print("hmmm... No calendar details found. Please fill out the form below.")
         protocol = input("protocol (http or https): ")
         url = input("url (without protocol): ")
         user = input("user:")
@@ -43,27 +38,29 @@ class Config(object):
         self.write_config(['CALENDAR', 'user'], user)
         self.write_config(['CALENDAR', 'password'], password)
         self.write_config(['CALENDAR', 'url'], url)
-        logging.info("Unsaved config looks like: %s", self.cal_config)
 
 
     def get_cal_url(self):
-        if(self.cal_config == None):
+        if(self.get_config(['CALENDAR']) == None or
+            self.get_config(['CALENDAR', 'protocol']) == None or
+            self.get_config(['CALENDAR', 'user']) == None or
+            self.get_config(['CALENDAR', 'password']) == None or
+            self.get_config(['CALENDAR', 'url']) == None):
             self.request_calendar()
-        else:
-            return self.make_cal_url()
+        return self.make_cal_url()
 
     def make_cal_url(self):
         # url = "https://user:pass@hostname/caldav.php/"
         url = ("%s://%s:%s@%s" % (
-            self.cal_config['protocol'],
-            self.cal_config['user'],
-            self.cal_config['password'],
-            self.cal_config['url']))
+            self.get_config(['CALENDAR', 'protocol']),
+            self.get_config(['CALENDAR', 'user']),
+            self.get_config(['CALENDAR', 'password']),
+            self.get_config(['CALENDAR', 'url'])))
         return url
 
 
     def get_api_info(self):
-        api_key = self.trello_config['api_key']
+        api_key = self.get_config(['TRELLO','api_key'])
         return api_key
 
     def save_token(self, out):
@@ -74,18 +71,38 @@ class Config(object):
         return token
 
     def get_client(self):
-        return [self.trello_config['api_key'],
-            self.trello_config['api_secret'],
-            self.trello_config['oauth_token'],
-            self.trello_config['oauth_token_secret']]
+        return [self.get_config(['TRELLO','api_key']),
+            self.get_config(['TRELLO','api_secret']),
+            self.get_config(['TRELLO','oauth_token']),
+            self.get_config(['TRELLO','oauth_token_secret'])]
 
-    def get_config(self, position, configuration=None):
-        if configuration == None:
-            configuration = self.config
-        value = configuration
-        for nest in position:
-            value = value[nest]
-        return value
+    def get_config(self, position):
+
+        configuration = self.config
+        last = position.pop()
+
+        if position:
+            for nest in position:
+                if (not configuration.__contains__(nest) or not configuration[nest]):
+                    logging.info("config['%s'] is None or doesn't exist" % nest)
+                    configuration[nest] = dict()
+                    logging.info("config: %s\nself.config: %s" % (configuration,self.config) )
+
+                logging.info("config: %s" % configuration)
+                configuration = configuration[nest]
+
+        if configuration.__contains__(last):
+            return configuration[last]
+        else:
+            configuration[last] = None
+            logging.info("writing conf: %s to file: %s" % (self.config, self.config_file) )
+            self.write_to_config()
+            return configuration[last]
+
+    def write_to_config(self):
+        file_w = open(self.config_file, "w")
+        self.yaml.dump(self.config, file_w)
+        file_w.close()
 
     def write_config(self, position, value):
     # TODO: allow an array of values to be written (so less writes)
@@ -97,19 +114,13 @@ class Config(object):
 
         # missing_nesting = []
         for nest in position:
-            # TODO: check if configuration[nest] is of type CommentedMap! not whether it's None
             if (not configuration.__contains__(nest) or configuration[nest] == None):
                 configuration[nest] = dict()
-                configuration = configuration[nest]
-
-            else:
-                configuration = configuration[nest]
+            configuration = configuration[nest]
 
         configuration[last] = value
 
-        file_w = open(self.config_file, "w")
-        self.yaml.dump(self.config, file_w)
-        file_w.close()
+        self.write_to_config()
         logging.info("successfully wrote %s: %s" % (last,value))
 
 
