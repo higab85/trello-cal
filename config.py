@@ -89,19 +89,28 @@ class Config(object):
 
     def write_config(self, position, value):
     # TODO: allow an array of values to be written (so less writes)
+        logging.info("write_config %s: %s" % (position,value))
+
         configuration = self.config
         last = position[-1]
         position = position[:-1]
 
+        # missing_nesting = []
         for nest in position:
-            configuration = configuration[nest]
+            # TODO: check if configuration[nest] is of type CommentedMap! not whether it's None
+            if (not configuration.__contains__(nest) or configuration[nest] == None):
+                configuration[nest] = dict()
+                configuration = configuration[nest]
+
+            else:
+                configuration = configuration[nest]
 
         configuration[last] = value
 
         file_w = open(self.config_file, "w")
         self.yaml.dump(self.config, file_w)
         file_w.close()
-
+        logging.info("successfully wrote %s: %s" % (last,value))
 
 
 config = Config()

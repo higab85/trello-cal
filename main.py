@@ -53,16 +53,14 @@ def main():
             work_done_calendarise()
         else:
             personal_done_calendarise()
-    except (exceptions.Unauthorized, exceptions.ResourceUnavailable):
+    except (exceptions.Unauthorized):
         logging.warn("Not logged in yet!")
         t_client.login()
         main()
-#     except IndexError:
-#         logging.warn("No option given!")
-#         print("trello_cal personal # for personal trello \
-#                 \ntrello_cal work # for work board \
-#                 \ntrello_cal all # for both")
-#         pass
+    except exceptions.ResourceUnavailable:
+        # TODO: suggest changing it
+        logging.warn("ResourceUnavailable: This may mean your board or list ID may have changed")
+
 
 if __name__ == '__main__':
     set_config()

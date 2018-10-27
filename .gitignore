@@ -2,3 +2,4 @@ config/
 sent_to_cal.db
 __pycache__
 trello_cal.log
+test.log

@@ -7,21 +7,44 @@ import uuid
 from pprint import pprint
 from config import config
 import logging
+import sys
+
+db = SqliteDatabase('sent_to_cal.db')
 
 class Trello_Client(object):
 
-    client = None
-
     def __init__(self):
-        pass
+        self.connection_tries = 0
+        self.client = None
+        self.db = db
+
 
     def init(self):
+        logging.info("trello_client init")
         self.login()
-        self.client = TrelloClient(config.get_client())
+        # self.client = TrelloClient(config.get_client())
 
 
     def boards(self):
         return config.trello_config['boards']
+
+    def refresh_credentials(self):
+        logging.warning("Unauthorized. Client: %s" % self.client)
+
+        print("Time to refresh credentials!")
+        print("Visit https://trello.com/app-key")
+
+        api_key = input("Trello API key: ")
+        config.write_config(["TRELLO", "api_key"], api_key)
+
+        token = input("Trello token: ")
+        config.write_config(["TRELLO", "token"], token)
+
+        self.login_petition(api_key, token)
+
+    def login_petition(self, api_key, token):
+        self.client = TrelloClient(api_key, token=token)
+        logging.info("client: %s" % self.client )
 
     def login(self):
         logging.info("Trying to log in.")
@@ -31,21 +54,19 @@ class Trello_Client(object):
         token = config.get_token()
         logging.info("Trello API key and token: %s" % [api_key, token])
 
+        if self.connection_tries > 3:
+            self.refresh_credentials()
+        self.connection_tries += 1
         try:
-            self.client = TrelloClient(api_key, token=token)
-            logging.info("client: %s" % self.client )
+            self.login_petition(api_key, token)
         except exceptions.Unauthorized:
-            logging.warning("Unauthorized")
-            print("Time to refresh credentials!")
-            print("Visit https://trello.com/app-key")
+            logging.warn("Exception: %s" % sys.exc_info()[0])
+            self.refresh_credentials()
 
-            api_key = input("Trello API key: ")
-            config.write_config(["TRELLO", "api_key"], api_key)
+        logging.info("Login successful")
+        self.connection_tries = 0
 
-            token = input("Trello token: ")
-            config.write_config(["TRELLO", "token"], token)
 
-            logging.info("New Trello API key and token: %s" % [api_key, token])
 
 
         # api_secret = input("Trello API secret: ")
@@ -66,6 +87,7 @@ class Trello_Client(object):
         # logging.info("New OAuth token, OAuth token secret: %s" % [token, token_secret])
 
 
+
     class LoggedCard(Model):
         card_id = CharField()
         card_hash = CharField()
@@ -80,7 +102,7 @@ class Trello_Client(object):
                 self.session_id)
 
         class Meta:
-            database = SqliteDatabase('sent_to_cal.db')
+            database = db
 
     def archive_card(self, card):
         card.set_closed(True)
@@ -138,11 +160,13 @@ class Trello_Client(object):
 
     def find_board_id(self, board_name):
         logging.warn("You don't seem to have a %s board! \n\
-    Please select one of the following: " % board_name)
-        for id,board in enumerate(self.client.list_boards()):
+            Please select one of the following: " % board_name)
+        boards = self.client.list_boards()
+        logging.info("boards: %s" % boards)
+        for id,board in enumerate(boards):
             print("%s:%s" % (id, board))
         board_num = int(input("What is the id of your %s board?" % (board_name)))
-        board_id = self.client.list_boards()[board_num].id
+        board_id = boards[board_num].id
         self.board_to_yaml(board_name, board_id)
         return board_id
 
@@ -152,27 +176,28 @@ class Trello_Client(object):
         else:
             return self.boards()[board_name]['id']
 
-    def list_to_yaml(self, board_name, list_name, list_id):
+    def list_to_yaml(self, board_config, board_name, list_name, list_id):
+        logging.info("%s id will be written to %s" %
+            (list_id, config.config))
         config.write_config(['TRELLO','boards', board_name, list_name, 'id'], list_id)
         logging.info("%s id has been written to config" % list_name)
 
-    def find_list_id(self, board_config, list_name):
-        logging.warn("You don't seem to have a %s list, on your this board! \n\
-    Please select one of the following: " % list_name)
+    def find_list_id(self, board_config, board_name, list_name):
+        logging.warn("You don't seem to have a %s list, on your this board! Please select one of the following: " % list_name)
         board_id = str(board_config['id'])
         for id,list in enumerate(self.client.get_board(board_id).open_lists()):
             print("%s:%s" % (id, list))
         list_num = int(input("What is the id of your %s list?" % (list_name)))
         list_id = self.client.get_board(board_id).open_lists()[list_num].id
-        self.list_to_yaml(board_config, list_name, list_id)
+        self.list_to_yaml(board_config, board_name, list_name, list_id)
         return list_id
 
     def get_list_id(self, board_name, list_name):
         board_config = self.boards()[board_name]
         if board_config[list_name] == None:
-            return self.find_list_id(board_config, list_name)
+            return self.find_list_id(board_config, board_name, list_name)
         else:
-            return self.boards()[board_name][list_name]
+            return self.boards()[board_name][list_name]["id"]
 
 t_client = Trello_Client()
 

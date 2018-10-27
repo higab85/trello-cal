@@ -34,8 +34,8 @@ UID:%s
 DTSTAMP:%s
 DTSTART:%s
 DTEND:%s
-SUMMARY:b'Cat\nLife'
-DESCRIPTION;ENCODING=quoted-printable:b'The cat was\noh so sad.\n\nShe cried like mad.\n'
+SUMMARY;ENCODING=quoted-printable:Cat\\nLife
+DESCRIPTION;ENCODING=quoted-printable:The cat was\\noh so sad.\\n\\nShe cried like mad.\\n
 END:VEVENT
 END:VCALENDAR""" % (uid, stamp.strftime("%Y%m%dT%H%M%SZ"), start.strftime("%Y%m%dT%H%M%SZ"), finish.strftime("%Y%m%dT%H%M%SZ"))
         fn_vcal = c_client._make_vcal(start, finish, title, description, stamp=stamp, uid=uid)

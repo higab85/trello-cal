@@ -54,16 +54,15 @@ UID:%s
 DTSTAMP:%s
 DTSTART:%s
 DTEND:%s
-SUMMARY:b'%s'
-DESCRIPTION;ENCODING=quoted-printable:b'%s'
+SUMMARY;ENCODING=quoted-printable:%s
+DESCRIPTION;ENCODING=quoted-printable:%s
 END:VEVENT
 END:VCALENDAR""" % (uid,
         stamp.strftime("%Y%m%dT%H%M%SZ"),
         start.strftime("%Y%m%dT%H%M%SZ"),
         end.strftime("%Y%m%dT%H%M%SZ"),
-        title,
-        description)
-        # description.replace("\n","=0D=0A"))
+        title.replace("\n","\\n"),
+        description.replace("\n","\\n"))
         logging.info("VCAL created: %s",vcal)
         return vcal
 
