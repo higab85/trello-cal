@@ -8,11 +8,12 @@ import os
 class TestCalClient(unittest.TestCase):
 
     def setUp(self):
-        copyfile("config/config.test.yml", "config/config.test.yml.tmp")
-        c_client.init("config/config.test.yml.tmp")
+        self.conf_file = "config/config.test.yml.tmp"
+        copyfile("config/config.test.yml", self.conf_file)
+        c_client.init(self.conf_file)
 
     def tearDown(self):
-        os.remove("config/config.test.yml.tmp")
+        os.remove(self.conf_file)
 
     def test_vcal_built_correctly(self):
         uid = 5

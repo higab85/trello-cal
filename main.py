@@ -10,27 +10,6 @@ import logging
 
 logging.basicConfig(filename='trello_cal.log', filemode='w', level=logging.DEBUG, format='[%(asctime)s]%(levelname)s: %(message)s', datefmt='%H:%M:%S')
 
-# def personal_done_calendarise():
-#     all_cards_in_done = t_client.get_list_cards(
-#         t_client.get_board_id('personal'),
-#         t_client.get_list_id('personal','done'))
-#     logging.info("got cards!")
-#     session_id = uuid.uuid1().int
-#     for card in all_cards_in_done:
-#         if t_client.is_new_card(card):
-#             c_client.event_to_cal(card)
-#             t_client.log_card(card, session_id)
-#             t_client.archive_card(card)
-#
-#
-# def work_done_calendarise():
-#     all_cards_in_done = t_client.get_list_cards(work_board_id, work_board_done_list_id, [my_id])
-#     session_id = uuid.uuid1().int
-#     for card in all_cards_in_done:
-#         if t_client.is_new_card(card):
-#             c_client.event_to_cal(card)
-#             t_client.log_card(card, session_id)
-
 def default_board_calendarise():
     board_id = t_client.get_board_id('default')
     list_id = t_client.get_list_id('default','done')
