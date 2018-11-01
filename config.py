@@ -15,9 +15,13 @@ class Config(object):
 
 
     def load_config(self, cfile="config/config.yml"):
-        file = open(cfile,"r")
-        self.yaml = YAML()
-        result = self.yaml.load(file)
+        result = None
+        try:
+            file = open(cfile,"r")
+            self.yaml = YAML()
+            result = self.yaml.load(file)
+        except FileNotFoundError:
+            file = open(cfile, "w")
         file.close()
         if result == None:
             result = dict()

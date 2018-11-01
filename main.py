@@ -11,6 +11,8 @@ import logging
 logging.basicConfig(filename='trello_cal.log', filemode='w', level=logging.DEBUG, format='[%(asctime)s]%(levelname)s: %(message)s', datefmt='%H:%M:%S')
 
 def default_board_calendarise():
+    logging.info("default_board_calendarise")
+
     board_id = t_client.get_board_id('default')
     list_id = t_client.get_list_id('default','done')
     all_cards_in_done = t_client.get_list_cards(board_id, list_id)
@@ -24,19 +26,24 @@ def default_board_calendarise():
 
 
 def set_config():
-    config.init()
+    try:
+        file = sys.argv[1]
+    except IndexError:
+        file = "config/config.yml"
+    logging.info("using file: %s", file)
+    config.init(cfile=file)
     logging.info("config successfully loaded: %s" % config.config)
 
 def main():
     try:
         default_board_calendarise()
     except (exceptions.Unauthorized):
-        logging.warn("Not logged in yet!")
+        logging.warning("Not logged in yet!")
         t_client.login()
         main()
     except exceptions.ResourceUnavailable:
-        # TODO: suggest changing it
-        logging.warn("ResourceUnavailable: This may mean your board or list ID may have changed")
+        logging.warning("ResourceUnavailable: This may mean your board or list ID may have changed")
+        main()
 
 
 if __name__ == '__main__':

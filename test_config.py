@@ -18,11 +18,11 @@ class TestConfig(unittest.TestCase):
 
     def test_load_correct_config(self):
         value = config.get_config(["CALENDAR","user"])
-        self.assertEqual(value, "bear")
+        self.assertEqual(value, "test")
 
     def test_trello_config(self):
-        value = config.get_config(["TRELLO", "boards", "personal", "id"])
-        self.assertEqual(value, "588644194fe4c310458d19f7")
+        value = config.get_config(["TRELLO", "boards", "default", "id"])
+        self.assertEqual(value, "5bd9b0bbf266e64d059403fa")
 
     def test_write_config_running(self):
         config.write_config(["CALENDAR","user"], "flamingo")
