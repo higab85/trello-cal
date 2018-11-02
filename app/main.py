@@ -1,11 +1,14 @@
 #! venvs/bin/python
-
-from cal_client import c_client
-from trello_client import t_client
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+ 
+from app.cal_client import c_client
+from app.trello_client import t_client
 from trello import exceptions
 import sys
 import uuid
-from config import config
+from app.config import config
 import logging
 
 logging.basicConfig(filename='trello_cal.log', filemode='w', level=logging.DEBUG, format='[%(asctime)s]%(levelname)s: %(message)s', datefmt='%H:%M:%S')

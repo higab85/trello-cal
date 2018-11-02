@@ -1,8 +1,8 @@
-from cal_client import c_client
+import os
+from app.cal_client import c_client
 import unittest
 import datetime
 from shutil import copyfile
-import os
 
 
 class TestCalClient(unittest.TestCase):

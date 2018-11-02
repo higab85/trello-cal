@@ -1,10 +1,10 @@
-from trello_client import Trello_Client
-import unittest
 import datetime
 from shutil import copyfile
 import os
-from unittest.mock import patch
-from config import config
+import unittest
+from mock import patch
+from app.config import config
+from app.trello_client import Trello_Client
 
 
 class TestTrelloClient(unittest.TestCase):
@@ -34,19 +34,19 @@ class TestTrelloClient(unittest.TestCase):
         os.remove(self.conf_file)
         os.remove(self.db_file)
 
-    @patch('trello_client.Trello_Client.refresh_credentials')
+    @patch('app.trello_client.Trello_Client.refresh_credentials')
     def test_login__no_api_key(self, mock):
         config.write_config(['TRELLO', 'api_key'], None)
         self.t_client.login()
         self.assertTrue(mock.called)
 
-    @patch('trello_client.Trello_Client.refresh_credentials')
+    @patch('app.trello_client.Trello_Client.refresh_credentials')
     def test_login__no_token(self, mock):
         config.write_config(['TRELLO', 'token'], None)
         self.t_client.login()
         self.assertTrue(mock.called)
 
-    @patch('trello_client.Trello_Client.refresh_credentials')
+    @patch('app.trello_client.Trello_Client.refresh_credentials')
     def test_login__wrong_credentials(self, mock):
         config.write_config(['TRELLO', 'token'], "1")
         self.t_client.login()

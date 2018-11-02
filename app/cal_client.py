@@ -1,12 +1,23 @@
 from datetime import datetime, timedelta
-import caldav
 import uuid
-from caldav.elements import dav, cdav
-from trello_client import t_client
-from config import config
 import logging
+import caldav
+# from caldav.elements import dav, cdav
+import os
+import sys
+sys.path.insert(
+        0, 
+        os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-logging.basicConfig(filename='trello_cal.log', filemode='w', level=logging.DEBUG, format='[%(asctime)s]%(levelname)s: %(message)s', datefmt='%H:%M:%S')
+from app.trello_client import t_client
+from app.config import config
+
+logging.basicConfig(
+        filename='trello_cal.log',
+        filemode='w',
+        level=logging.DEBUG,
+        format='[%(asctime)s]%(levelname)s: %(message)s',
+        datefmt='%H:%M:%S')
 
 class Calendar_Client(object):
 

@@ -1,8 +1,8 @@
+import os
 import unittest
 from shutil import copyfile
-from config import config
+from app.config import config
 import logging
-import os
 
 logging.basicConfig(filename='test.log', filemode='w', level=logging.DEBUG, format='[%(asctime)s]%(levelname)s: %(message)s', datefmt='%H:%M:%S')
 
