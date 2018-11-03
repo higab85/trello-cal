@@ -9,6 +9,6 @@ git clone https://github.com/higab85/trello-cal
 cd trello-cal
 mkvirtualenv trello-cal
 pip install -r requirements.txt
-python setup.py
-python main.py
+python app/setup.py
+python app/main.py
 ```
