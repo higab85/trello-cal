@@ -1,7 +1,7 @@
-from ruamel.yaml import YAML
 import logging
+from ruamel.yaml import YAML
 
-class Config(object):
+class Config:
 
     config_file = None
     yaml = None
@@ -17,13 +17,13 @@ class Config(object):
     def load_config(self, cfile="config/config.yml"):
         result = None
         try:
-            file = open(cfile,"r")
+            file = open(cfile, "r")
             self.yaml = YAML()
             result = self.yaml.load(file)
         except FileNotFoundError:
             file = open(cfile, "w")
         file.close()
-        if result == None:
+        if result is None:
             result = dict()
         return result
 
@@ -45,11 +45,11 @@ class Config(object):
 
 
     def get_cal_url(self):
-        if(self.get_config(['CALENDAR']) == None or
-            self.get_config(['CALENDAR', 'protocol']) == None or
-            self.get_config(['CALENDAR', 'user']) == None or
-            self.get_config(['CALENDAR', 'password']) == None or
-            self.get_config(['CALENDAR', 'url']) == None):
+        if(self.get_config(['CALENDAR']) is None or
+           self.get_config(['CALENDAR', 'protocol']) is None or
+           self.get_config(['CALENDAR', 'user']) is None or
+           self.get_config(['CALENDAR', 'password']) is None or
+           self.get_config(['CALENDAR', 'url']) is None):
             self.request_calendar()
         return self.make_cal_url()
 
@@ -64,7 +64,7 @@ class Config(object):
 
 
     def get_api_info(self):
-        api_key = self.get_config(['TRELLO','api_key'])
+        api_key = self.get_config(['TRELLO', 'api_key'])
         return api_key
 
     def save_token(self, out):
@@ -75,10 +75,10 @@ class Config(object):
         return token
 
     def get_client(self):
-        return [self.get_config(['TRELLO','api_key']),
-            self.get_config(['TRELLO','api_secret']),
-            self.get_config(['TRELLO','oauth_token']),
-            self.get_config(['TRELLO','oauth_token_secret'])]
+        return [self.get_config(['TRELLO', 'api_key']),
+                self.get_config(['TRELLO', 'api_secret']),
+                self.get_config(['TRELLO', 'oauth_token']),
+                self.get_config(['TRELLO', 'oauth_token_secret'])]
 
     def get_config(self, position):
 
@@ -87,21 +87,23 @@ class Config(object):
 
         if position:
             for nest in position:
-                if (not configuration.__contains__(nest) or not configuration[nest]):
-                    logging.info("config['%s'] is None or doesn't exist" % nest)
+                if (not configuration.__contains__(nest) or
+                        not configuration[nest]):
+                    logging.info("config['%s'] is None or doesn't exist", nest)
                     configuration[nest] = dict()
-                    logging.info("config: %s\nself.config: %s" % (configuration,self.config) )
+                    logging.info("config: %s\nself.config: %s",
+                                 configuration, self.config)
 
-                logging.info("config: %s" % configuration)
+                logging.info("config: %s", configuration)
                 configuration = configuration[nest]
 
         if configuration.__contains__(last):
             return configuration[last]
-        else:
-            configuration[last] = None
-            logging.info("writing conf: %s to file: %s" % (self.config, self.config_file) )
-            self.write_to_config()
-            return configuration[last]
+        configuration[last] = None
+        logging.info("writing conf: %s to file: %s",
+                     self.config, self.config_file)
+        self.write_to_config()
+        return configuration[last]
 
     def write_to_config(self):
         file_w = open(self.config_file, "w")
@@ -110,7 +112,7 @@ class Config(object):
 
     def write_config(self, position, value):
     # TODO: allow an array of values to be written (so less writes)
-        logging.info("write_config %s: %s" % (position,value))
+        logging.info("write_config %s: %s", position, value)
 
         configuration = self.config
         last = position[-1]
@@ -118,14 +120,15 @@ class Config(object):
 
         # missing_nesting = []
         for nest in position:
-            if (not configuration.__contains__(nest) or configuration[nest] == None):
+            if (not configuration.__contains__(nest) or
+                    configuration[nest] is None):
                 configuration[nest] = dict()
             configuration = configuration[nest]
 
         configuration[last] = value
 
         self.write_to_config()
-        logging.info("successfully wrote %s: %s" % (last,value))
+        logging.info("successfully wrote %s: %s", last, value)
 
 
-config = Config()
+CONFIG = Config()

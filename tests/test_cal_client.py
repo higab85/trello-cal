@@ -1,5 +1,5 @@
 import os
-from app.cal_client import c_client
+from app.cal_client import C_CLIENT
 import unittest
 import datetime
 from shutil import copyfile
@@ -10,7 +10,7 @@ class TestCalClient(unittest.TestCase):
     def setUp(self):
         self.conf_file = "config/config.test.yml.tmp"
         copyfile("config/config.test.yml", self.conf_file)
-        c_client.init(self.conf_file)
+        C_CLIENT.init(self.conf_file)
 
     def tearDown(self):
         os.remove(self.conf_file)
@@ -38,8 +38,16 @@ DTEND:%s
 SUMMARY;ENCODING=quoted-printable:Cat\\nLife
 DESCRIPTION;ENCODING=quoted-printable:The cat was\\noh so sad.\\n\\nShe cried like mad.\\n
 END:VEVENT
-END:VCALENDAR""" % (uid, stamp.strftime("%Y%m%dT%H%M%SZ"), start.strftime("%Y%m%dT%H%M%SZ"), finish.strftime("%Y%m%dT%H%M%SZ"))
-        fn_vcal = c_client._make_vcal(start, finish, title, description, stamp=stamp, uid=uid)
+END:VCALENDAR""" % (uid,
+                    stamp.strftime("%Y%m%dT%H%M%SZ"),
+                    start.strftime("%Y%m%dT%H%M%SZ"),
+                    finish.strftime("%Y%m%dT%H%M%SZ"))
+        fn_vcal = C_CLIENT.build_vcal(start,
+                                      finish,
+                                      title,
+                                      description,
+                                      stamp=stamp,
+                                      uid=uid)
         self.assertEqual(correct_vcal, fn_vcal)
 
 

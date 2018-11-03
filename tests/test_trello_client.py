@@ -3,7 +3,7 @@ from shutil import copyfile
 import os
 import unittest
 from mock import patch
-from app.config import config
+from app.config import CONFIG
 from app.trello_client import Trello_Client
 
 
@@ -28,7 +28,7 @@ class TestTrelloClient(unittest.TestCase):
         self.t_client = Trello_Client(self.db_file)
 
         copyfile("config/config.test.yml", self.conf_file)
-        config.init(self.conf_file)
+        CONFIG.init(self.conf_file)
 
     def tearDown(self):
         os.remove(self.conf_file)
@@ -36,19 +36,19 @@ class TestTrelloClient(unittest.TestCase):
 
     @patch('app.trello_client.Trello_Client.refresh_credentials')
     def test_login__no_api_key(self, mock):
-        config.write_config(['TRELLO', 'api_key'], None)
+        CONFIG.write_config(['TRELLO', 'api_key'], None)
         self.t_client.login()
         self.assertTrue(mock.called)
 
     @patch('app.trello_client.Trello_Client.refresh_credentials')
     def test_login__no_token(self, mock):
-        config.write_config(['TRELLO', 'token'], None)
+        CONFIG.write_config(['TRELLO', 'token'], None)
         self.t_client.login()
         self.assertTrue(mock.called)
 
     @patch('app.trello_client.Trello_Client.refresh_credentials')
     def test_login__wrong_credentials(self, mock):
-        config.write_config(['TRELLO', 'token'], "1")
+        CONFIG.write_config(['TRELLO', 'token'], "1")
         self.t_client.login()
         self.assertTrue(mock.called)
 
@@ -77,14 +77,14 @@ class TestTrelloClient(unittest.TestCase):
         card_id = "1"
         card_hash = "2"
         session_id = "3"
-        self.t_client._log_card(card_id, card_hash, now, session_id)
-        new_card = self.t_client._is_new_card(card_id, card_hash)
+        self.t_client.log__card(card_id, card_hash, now, session_id)
+        new_card = self.t_client.is__new_card(card_id, card_hash)
         self.assertFalse(new_card)
 
     def test_log_card__fake(self):
         card_id = "4"
         card_hash = "5"
-        new_card = self.t_client._is_new_card(card_id, card_hash)
+        new_card = self.t_client.is__new_card(card_id, card_hash)
         self.assertTrue(new_card)
 
 
