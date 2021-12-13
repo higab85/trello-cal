@@ -6,7 +6,7 @@ chardet==3.0.4
 coverage==4.5.1
 flake8==3.6.0
 idna==2.7
-lxml==4.2.5
+lxml==4.6.5
 mccabe==0.6.1
 mock==2.0.0
 more-itertools==4.3.0
